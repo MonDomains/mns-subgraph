@@ -3,7 +3,9 @@
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
-    "test": "graph test --network sepolia"
+    "test": "graph test --network sepolia",
+    "create": "graph create mns-subgraph --node http://graph.monadns.com",
+    "deploy": "graph deploy mns-subgraph --node http://graph.monadns.com --ipfs https://ipfs.monadns.com"
   },
   "dependencies": {
     "@ensdomains/content-hash": "^2.5.3",

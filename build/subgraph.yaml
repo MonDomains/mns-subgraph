@@ -6,7 +6,7 @@ features:
 dataSources:
   - kind: ethereum
     name: MONRegistrarController
-    network: monad-testnet
+    network: mainnet
     source:
       abi: MONRegistrarController
       address: "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211"
@@ -27,8 +27,30 @@ dataSources:
         - event: NameRenewed(string,indexed bytes32,uint256,uint256)
           handler: handleNameRenewedByController
   - kind: ethereum
+    name: MONRegistrarControllerV2
+    network: mainnet
+    source:
+      abi: MONRegistrarControllerV2
+      address: "0x04894Bf8F0ca6370C0fd8F5FCE3158033b46d979"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: MONRegistrarController/MONRegistrarController.wasm
+      entities:
+        - Domain
+      abis:
+        - name: MONRegistrarControllerV2
+          file: MONRegistrarControllerV2/MONRegistrarControllerV2.json
+      eventHandlers:
+        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256,uint256)
+          handler: handleNameRegisteredByController
+        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
+          handler: handleNameRenewedByController
+  - kind: ethereum
     name: BaseRegistrarImplementation
-    network: monad-testnet
+    network: mainnet
     source:
       abi: BaseRegistrarImplementation
       address: "0x01BeCD733ea490CCDa8B5Caa97381E67BFA5249D"
@@ -52,7 +74,7 @@ dataSources:
           handler: handleNameTransferredByRegistrar
   - kind: ethereum
     name: ENSRegistryWithFallback
-    network: monad-testnet
+    network: mainnet
     source:
       abi: ENSRegistryWithFallback
       address: "0x6442eC5c3CCDaF112d6B78F9189cD111d516fE1E"
