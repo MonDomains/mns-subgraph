@@ -1,5 +1,5 @@
-# fns-subgraph
-Monad Domains Subgraph
+# mns-subgraph
+Monad Name Service Subgraph
 
 ## Install
 to install dependencies, run the following command.
