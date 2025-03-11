@@ -1,30 +1,4 @@
 {
-  "sepolia": {
-    "ENSRegistryWithFallback": {
-      "address": "0x2F97F7FBea0673648eF545d6fBBee567F8B9781c",
-      "startBlock": 7609890
-    },
-    "ENSRegistryWithFallbackOld": {
-      "address": "0xCb4137f779E30F65D8636dc0870f6d2338042c54",
-      "startBlock": 7609890
-    },
-    "ReverseRegistrar": {
-      "address": "0xA118fA6ab3f0Af7eec18533C0c14bF64911aaA55",
-      "startBlock": 7609890
-    },
-    "BaseRegistrarImplementation": {
-      "address": "0xC2b4bAE402d2495Cd012Cb4Cb3C883A9619465EE",
-      "startBlock": 7609890
-    },
-    "MONRegistrarController": {
-      "address": "0xD10CC680301933d259c215669F31bEd836E5A72f",
-      "startBlock": 7609890
-    },  
-    "PublicResolver": {
-      "address": "0x4B28e1df3b3aDeF38Ec4D422BE58b44610ea4f30",
-      "startBlock": 7609890
-    }
-  },
   "monad-testnet": {
     "ENSRegistryWithFallback": {
       "address": "0x6442eC5c3CCDaF112d6B78F9189cD111d516fE1E",
@@ -51,38 +25,38 @@
       "startBlock": 3960000
     }, 
     "PublicResolver": {
-      "address": "0x6544A8700191578f9e06f9b27bE32dCAe22E72d6",
+      "address": "0x9F64406E0ef653074F8aF8178f0717e766A32764",
       "startBlock": 3960000
     }
   },
   "mainnet": {
     "ENSRegistryWithFallback": {
-      "address": "0x6442eC5c3CCDaF112d6B78F9189cD111d516fE1E",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     },
     "ENSRegistryWithFallbackOld": {
-      "address": "0x7DCbEf921f341d1C605Fd6c1F0F175Ce13888884",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     },
     "ReverseRegistrar": {
-      "address": "0x604bdEE35ebC13ef233f6b4e20613061fDf5C7E5",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     },
     "BaseRegistrarImplementation": {
-      "address": "0x01BeCD733ea490CCDa8B5Caa97381E67BFA5249D",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     },
     "MONRegistrarController": {
-      "address": "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     }, 
     "MONRegistrarControllerV2": {
-      "address": "0x04894Bf8F0ca6370C0fd8F5FCE3158033b46d979",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     }, 
     "PublicResolver": {
-      "address": "0x6544A8700191578f9e06f9b27bE32dCAe22E72d6",
-      "startBlock": 3960000
+      "address": "",
+      "startBlock": 0
     }
   }
 }
