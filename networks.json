@@ -29,7 +29,7 @@
       "startBlock": 3960000
     }
   },
-  "mainnet": {
+  "monad-mainnet": {
     "ENSRegistryWithFallback": {
       "address": "",
       "startBlock": 0
