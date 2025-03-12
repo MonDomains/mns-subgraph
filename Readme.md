@@ -1,5 +1,5 @@
 # mns-subgraph
-Monad Name Service Subgraph
+Mon Name Service Subgraph
 
 ## Install
 to install dependencies, run the following command.
