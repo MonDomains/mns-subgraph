@@ -49,6 +49,28 @@ dataSources:
         - event: NameRenewed(string,indexed bytes32,uint256,uint256)
           handler: handleNameRenewedByController
   - kind: ethereum
+    name: MONRegistrarControllerV3
+    network: monad-testnet
+    source:
+      abi: MONRegistrarControllerV3
+      address: "0x6C8a8114dA4EED8A2662B4069418e574411A5540"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: MONRegistrarController/MONRegistrarController.wasm
+      entities:
+        - Domain
+      abis:
+        - name: MONRegistrarControllerV3
+          file: MONRegistrarControllerV3/MONRegistrarControllerV3.json
+      eventHandlers:
+        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256,uint256)
+          handler: handleNameRegisteredByController
+        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
+          handler: handleNameRenewedByController
+  - kind: ethereum
     name: BaseRegistrarImplementation
     network: monad-testnet
     source:

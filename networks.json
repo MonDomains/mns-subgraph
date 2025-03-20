@@ -24,8 +24,12 @@
       "address": "0x04894Bf8F0ca6370C0fd8F5FCE3158033b46d979",
       "startBlock": 3960000
     }, 
+    "MONRegistrarControllerV3": {
+      "address": "0x6C8a8114dA4EED8A2662B4069418e574411A5540",
+      "startBlock": 3960000
+    }, 
     "PublicResolver": {
-      "address": "0x9F64406E0ef653074F8aF8178f0717e766A32764",
+      "address": "0x4569B7AE2e1C13Bb812fEefee06e56a12E67471F",
       "startBlock": 3960000
     }
   },
