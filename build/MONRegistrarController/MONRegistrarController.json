@@ -27,8 +27,8 @@
         "type": "address"
       },
       {
-        "internalType": "contract ENS",
-        "name": "_ens",
+        "internalType": "contract INameWrapper",
+        "name": "_nameWrapper",
         "type": "address"
       }
     ],
@@ -95,35 +95,8 @@
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableUnauthorizedAccount",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "ResolverRequiredWhenDataSupplied",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ResolverRequiredWhenReverseRecord",
     "type": "error"
   },
   {
@@ -330,6 +303,11 @@
         "internalType": "bool",
         "name": "reverseRecord",
         "type": "bool"
+      },
+      {
+        "internalType": "uint16",
+        "name": "ownerControlledFuses",
+        "type": "uint16"
       }
     ],
     "name": "makeCommitment",
@@ -364,6 +342,19 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nameWrapper",
+    "outputs": [
+      {
+        "internalType": "contract INameWrapper",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -454,6 +445,11 @@
         "internalType": "bool",
         "name": "reverseRecord",
         "type": "bool"
+      },
+      {
+        "internalType": "uint16",
+        "name": "ownerControlledFuses",
+        "type": "uint16"
       }
     ],
     "name": "register",
@@ -533,19 +529,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract IPriceOracle",
-        "name": "_prices",
-        "type": "address"
-      }
-    ],
-    "name": "setPriceOracle",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

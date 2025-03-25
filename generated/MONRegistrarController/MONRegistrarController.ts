@@ -100,7 +100,7 @@ export class OwnershipTransferred__Params {
   }
 }
 
-export class MONRegistrarController__rentPriceResultPriceStruct extends ethereum.Tuple {
+export class MonRegistrarController__rentPriceResultPriceStruct extends ethereum.Tuple {
   get base(): BigInt {
     return this[0].toBigInt();
   }
@@ -110,9 +110,9 @@ export class MONRegistrarController__rentPriceResultPriceStruct extends ethereum
   }
 }
 
-export class MONRegistrarController extends ethereum.SmartContract {
-  static bind(address: Address): MONRegistrarController {
-    return new MONRegistrarController("MONRegistrarController", address);
+export class MonRegistrarController extends ethereum.SmartContract {
+  static bind(address: Address): MonRegistrarController {
+    return new MonRegistrarController("MonRegistrarController", address);
   }
 
   MIN_REGISTRATION_DURATION(): BigInt {
@@ -186,10 +186,11 @@ export class MONRegistrarController extends ethereum.SmartContract {
     resolver: Address,
     data: Array<Bytes>,
     reverseRecord: boolean,
+    ownerControlledFuses: i32,
   ): Bytes {
     let result = super.call(
       "makeCommitment",
-      "makeCommitment(string,address,uint256,bytes32,address,bytes[],bool):(bytes32)",
+      "makeCommitment(string,address,uint256,bytes32,address,bytes[],bool,uint16):(bytes32)",
       [
         ethereum.Value.fromString(name),
         ethereum.Value.fromAddress(owner),
@@ -198,6 +199,7 @@ export class MONRegistrarController extends ethereum.SmartContract {
         ethereum.Value.fromAddress(resolver),
         ethereum.Value.fromBytesArray(data),
         ethereum.Value.fromBoolean(reverseRecord),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(ownerControlledFuses)),
       ],
     );
 
@@ -212,10 +214,11 @@ export class MONRegistrarController extends ethereum.SmartContract {
     resolver: Address,
     data: Array<Bytes>,
     reverseRecord: boolean,
+    ownerControlledFuses: i32,
   ): ethereum.CallResult<Bytes> {
     let result = super.tryCall(
       "makeCommitment",
-      "makeCommitment(string,address,uint256,bytes32,address,bytes[],bool):(bytes32)",
+      "makeCommitment(string,address,uint256,bytes32,address,bytes[],bool,uint16):(bytes32)",
       [
         ethereum.Value.fromString(name),
         ethereum.Value.fromAddress(owner),
@@ -224,6 +227,7 @@ export class MONRegistrarController extends ethereum.SmartContract {
         ethereum.Value.fromAddress(resolver),
         ethereum.Value.fromBytesArray(data),
         ethereum.Value.fromBoolean(reverseRecord),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(ownerControlledFuses)),
       ],
     );
     if (result.reverted) {
@@ -279,6 +283,21 @@ export class MONRegistrarController extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  nameWrapper(): Address {
+    let result = super.call("nameWrapper", "nameWrapper():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_nameWrapper(): ethereum.CallResult<Address> {
+    let result = super.tryCall("nameWrapper", "nameWrapper():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   owner(): Address {
     let result = super.call("owner", "owner():(address)", []);
 
@@ -312,7 +331,7 @@ export class MONRegistrarController extends ethereum.SmartContract {
   rentPrice(
     name: string,
     duration: BigInt,
-  ): MONRegistrarController__rentPriceResultPriceStruct {
+  ): MonRegistrarController__rentPriceResultPriceStruct {
     let result = super.call(
       "rentPrice",
       "rentPrice(string,uint256):((uint256,uint256))",
@@ -322,7 +341,7 @@ export class MONRegistrarController extends ethereum.SmartContract {
       ],
     );
 
-    return changetype<MONRegistrarController__rentPriceResultPriceStruct>(
+    return changetype<MonRegistrarController__rentPriceResultPriceStruct>(
       result[0].toTuple(),
     );
   }
@@ -330,7 +349,7 @@ export class MONRegistrarController extends ethereum.SmartContract {
   try_rentPrice(
     name: string,
     duration: BigInt,
-  ): ethereum.CallResult<MONRegistrarController__rentPriceResultPriceStruct> {
+  ): ethereum.CallResult<MonRegistrarController__rentPriceResultPriceStruct> {
     let result = super.tryCall(
       "rentPrice",
       "rentPrice(string,uint256):((uint256,uint256))",
@@ -344,7 +363,7 @@ export class MONRegistrarController extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(
-      changetype<MONRegistrarController__rentPriceResultPriceStruct>(
+      changetype<MonRegistrarController__rentPriceResultPriceStruct>(
         value[0].toTuple(),
       ),
     );
@@ -453,7 +472,7 @@ export class ConstructorCall__Inputs {
     return this._call.inputValues[4].value.toAddress();
   }
 
-  get _ens(): Address {
+  get _nameWrapper(): Address {
     return this._call.inputValues[5].value.toAddress();
   }
 }
@@ -578,6 +597,10 @@ export class RegisterCall__Inputs {
   get reverseRecord(): boolean {
     return this._call.inputValues[6].value.toBoolean();
   }
+
+  get ownerControlledFuses(): i32 {
+    return this._call.inputValues[7].value.toI32();
+  }
 }
 
 export class RegisterCall__Outputs {
@@ -644,36 +667,6 @@ export class RenounceOwnershipCall__Outputs {
   _call: RenounceOwnershipCall;
 
   constructor(call: RenounceOwnershipCall) {
-    this._call = call;
-  }
-}
-
-export class SetPriceOracleCall extends ethereum.Call {
-  get inputs(): SetPriceOracleCall__Inputs {
-    return new SetPriceOracleCall__Inputs(this);
-  }
-
-  get outputs(): SetPriceOracleCall__Outputs {
-    return new SetPriceOracleCall__Outputs(this);
-  }
-}
-
-export class SetPriceOracleCall__Inputs {
-  _call: SetPriceOracleCall;
-
-  constructor(call: SetPriceOracleCall) {
-    this._call = call;
-  }
-
-  get _prices(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-}
-
-export class SetPriceOracleCall__Outputs {
-  _call: SetPriceOracleCall;
-
-  constructor(call: SetPriceOracleCall) {
     this._call = call;
   }
 }

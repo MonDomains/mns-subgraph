@@ -1,103 +1,96 @@
+// Import types and APIs from graph-ts
+import { BigInt, ByteArray, ethereum, log } from "@graphprotocol/graph-ts";
+import { Account, Domain } from "../generated/schema";
 
-import {
-    BigInt,
-    ByteArray,
-    ethereum, 
-    Bytes,
-    log
-  } from '@graphprotocol/graph-ts'
-
-
-   
- 
-export const EMPTY_NODE = '0x0000000000000000000000000000000000000000000000000000000000000000'
-export const EMPTY_ADDRESS = '0x0000000000000000000000000000000000000000'
-export const ROOT_NODE:ByteArray = byteArrayFromHex("93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae")
-export const MAX_BYTE_LENGTH = 8191
-export const BIG_INT_ZERO = BigInt.fromI32(0)
-  
-function decodeName (buf:Bytes):Array<string> {
-  let offset = 0
-  let list = Bytes.fromHexString('')
-  let dot = Bytes.fromHexString('2e')
-  let len = buf[offset++]
-  let hex = buf.toHexString()
-  let firstLabel = ''
-  if (len === 0) {
-    return [firstLabel, '.']
-  }
-  
-  while (len) {
-    let label = hex.slice((offset +1 ) * 2, (offset + 1 + len ) * 2)
-    let labelBytes = Bytes.fromHexString(label)
-  
-    if(offset > 1){
-      list = concat(list, dot)
-    }else{
-      firstLabel = labelBytes.toString()
-    }
-    list = concat(list, labelBytes)
-    offset += len
-    len = buf[offset++]
-  }
-  return [firstLabel, list.toString()]
+export function createEventID(event: ethereum.Event): string {
+  return event.block.number
+    .toString()
+    .concat("-")
+    .concat(event.logIndex.toString());
 }
 
-export function createEventID(event:  ethereum.Event): Bytes {
-    return Bytes.fromUTF8( event.block.number.toString().concat('-').concat(event.logIndex.toString() ));
-}
+export const MON_NODE =
+  "0xc6467acde3662083e12f3fbcf8aef57155a035e49629628eb9453948d1afb379";
+export const ROOT_NODE =
+  "0x0000000000000000000000000000000000000000000000000000000000000000";
+export const EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const EMPTY_ADDRESS_BYTEARRAY = new ByteArray(20);
 
-export function createUniqueID(event:  ethereum.Event): string {
-  return event.transaction.hash.toHexString().concat('-').concat(event.logIndex.toString())
-}
- 
+// Helper for concatenating two byte arrays
 export function concat(a: ByteArray, b: ByteArray): ByteArray {
-  let out = new Uint8Array(a.length + b.length)
+  let out = new Uint8Array(a.length + b.length);
   for (let i = 0; i < a.length; i++) {
-    out[i] = a[i]
+    out[i] = a[i];
   }
   for (let j = 0; j < b.length; j++) {
-    out[a.length + j] = b[j]
+    out[a.length + j] = b[j];
   }
   // return out as ByteArray
-  return changetype<ByteArray>(out)
-}
-  
-export function byteArrayFromHex(s: string): ByteArray {
-  if(s.length % 2 !== 0) {
-    throw new TypeError("Hex string must have an even number of characters")
-  }
-  let out = new Uint8Array(s.length / 2)
-  for(var i = 0; i < s.length; i += 2) {
-    out[i / 2] = parseInt(s.substring(i, i + 2), 16) as u32
-  }
-  return changetype<ByteArray>(out)
-}
-  
-export function uint256ToByteArray(i: BigInt): ByteArray {
-  let hex = i.toHex().slice(2).padStart(64, '0')
-  return byteArrayFromHex(hex)
-}
- 
-export function decode_utf16_pair(units: number[]): number
-{ 
-    let code = 0x10000;
-    code += (units[0] & 0x03FF) << 10;
-    code += (units[1] & 0x03FF);
-    return code;
+  return changetype<ByteArray>(out);
 }
 
-export function checkValidLabel(name: string): boolean {
+export function byteArrayFromHex(s: string): ByteArray {
+  if (s.length % 2 !== 0) {
+    throw new TypeError("Hex string must have an even number of characters");
+  }
+  let out = new Uint8Array(s.length / 2);
+  for (var i = 0; i < s.length; i += 2) {
+    out[i / 2] = parseInt(s.substring(i, i + 2), 16) as u32;
+  }
+  return changetype<ByteArray>(out);
+}
+
+export function uint256ToByteArray(i: BigInt): ByteArray {
+  let hex = i.toHex().slice(2).padStart(64, "0");
+  return byteArrayFromHex(hex);
+}
+
+export function createOrLoadAccount(address: string): Account {
+  let account = Account.load(address);
+  if (account == null) {
+    account = new Account(address);
+    account.save();
+  }
+
+  return account;
+}
+
+export function createOrLoadDomain(node: string): Domain {
+  let domain = Domain.load(node);
+  if (domain == null) {
+    domain = new Domain(node);
+    domain.save();
+  }
+
+  return domain;
+}
+
+export function checkValidLabel(name: string | null): boolean {
+  if (name == null) {
+    return false;
+  }
+  // for compiler
+  name = name!;
   for (let i = 0; i < name.length; i++) {
-    let c = name.charCodeAt(i);
-    if (c === 0) {
+    let charCode = name.charCodeAt(i);
+    if (charCode === 0) {
+      // 0 = null byte
       log.warning("Invalid label '{}' contained null byte. Skipping.", [name]);
       return false;
-    } else if (c === 46) {
+    } else if (charCode === 46) {
+      // 46 = .
       log.warning(
         "Invalid label '{}' contained separator char '.'. Skipping.",
         [name]
       );
+      return false;
+    } else if (charCode === 91) {
+      // 91 = [
+      log.warning("Invalid label '{}' contained char '['. Skipping.", [name]);
+      return false;
+    } else if (charCode === 93) {
+      // 93 = ]
+      log.warning("Invalid label '{}' contained char ']'. Skipping.", [name]);
       return false;
     }
   }

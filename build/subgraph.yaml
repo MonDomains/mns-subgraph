@@ -1,118 +1,233 @@
 specVersion: 0.0.4
+description: A secure & decentralized way to address resources on and off the blockchain
+  using simple, human-readable names. Access domains and transfer history.
+repository: https://github.com/mondomains/mns-subgraph
 schema:
   file: schema.graphql
-features:
-  - fullTextSearch
 dataSources:
-  - kind: ethereum
-    name: MONRegistrarController
+  - kind: ethereum/contract
+    name: MNSRegistry
     network: monad-testnet
     source:
-      abi: MONRegistrarController
-      address: "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211"
-      startBlock: 3960000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: MONRegistrarController/MONRegistrarController.wasm
-      entities:
-        - Domain
-      abis:
-        - name: MONRegistrarController
-          file: MONRegistrarController/MONRegistrarController.json
-      eventHandlers:
-        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256,uint256)
-          handler: handleNameRegisteredByController
-        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
-          handler: handleNameRenewedByController
-  - kind: ethereum
-    name: MONRegistrarControllerV2
-    network: monad-testnet
-    source:
-      abi: MONRegistrarControllerV2
-      address: "0x04894Bf8F0ca6370C0fd8F5FCE3158033b46d979"
-      startBlock: 3960000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: MONRegistrarController/MONRegistrarController.wasm
-      entities:
-        - Domain
-      abis:
-        - name: MONRegistrarControllerV2
-          file: MONRegistrarControllerV2/MONRegistrarControllerV2.json
-      eventHandlers:
-        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256,uint256)
-          handler: handleNameRegisteredByController
-        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
-          handler: handleNameRenewedByController
-  - kind: ethereum
-    name: MONRegistrarControllerV3
-    network: monad-testnet
-    source:
-      abi: MONRegistrarControllerV3
-      address: "0x6C8a8114dA4EED8A2662B4069418e574411A5540"
-      startBlock: 3960000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: MONRegistrarController/MONRegistrarController.wasm
-      entities:
-        - Domain
-      abis:
-        - name: MONRegistrarControllerV3
-          file: MONRegistrarControllerV3/MONRegistrarControllerV3.json
-      eventHandlers:
-        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256,uint256)
-          handler: handleNameRegisteredByController
-        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
-          handler: handleNameRenewedByController
-  - kind: ethereum
-    name: BaseRegistrarImplementation
-    network: monad-testnet
-    source:
-      abi: BaseRegistrarImplementation
-      address: "0x01BeCD733ea490CCDa8B5Caa97381E67BFA5249D"
-      startBlock: 3960000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: MONRegistrarController/MONRegistrarController.wasm
-      entities:
-        - Domain
-      abis:
-        - name: BaseRegistrarImplementation
-          file: BaseRegistrarImplementation/BaseRegistrarImplementation.json
-      eventHandlers:
-        - event: NameRegistered(indexed uint256,indexed address,uint256)
-          handler: handleNameRegisteredByRegistrar
-        - event: NameRenewed(indexed uint256,uint256)
-          handler: handleNameRenewedByRegistrar
-        - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleNameTransferredByRegistrar
-  - kind: ethereum
-    name: ENSRegistryWithFallback
-    network: monad-testnet
-    source:
-      abi: ENSRegistryWithFallback
+      abi: MNSRegistry
       address: "0x6442eC5c3CCDaF112d6B78F9189cD111d516fE1E"
       startBlock: 3960000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: MONRegistrarController/MONRegistrarController.wasm
+      file: MNSRegistry/MNSRegistry.wasm
       entities:
         - Domain
+        - Account
+        - Resolver
       abis:
-        - name: ENSRegistryWithFallback
-          file: ENSRegistryWithFallback/ENSRegistryWithFallback.json
+        - name: MNSRegistry
+          file: MNSRegistry/Registry.json
       eventHandlers:
         - event: Transfer(indexed bytes32,address)
-          handler: handleTransferByRegistry
+          handler: handleTransfer
         - event: NewOwner(indexed bytes32,indexed bytes32,address)
-          handler: handleNewOwnerByRegistry
+          handler: handleNewOwner
+        - event: NewResolver(indexed bytes32,address)
+          handler: handleNewResolver
+        - event: NewTTL(indexed bytes32,uint64)
+          handler: handleNewTTL
+  - kind: ethereum/contract
+    name: MNSRegistryOld
+    network: monad-testnet
+    source:
+      abi: MNSRegistry
+      address: "0x7DCbEf921f341d1C605Fd6c1F0F175Ce13888884"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: MNSRegistry/MNSRegistry.wasm
+      entities:
+        - Domain
+        - Account
+        - Resolver
+      abis:
+        - name: MNSRegistry
+          file: MNSRegistryOld/Registry.json
+      eventHandlers:
+        - event: Transfer(indexed bytes32,address)
+          handler: handleTransferOldRegistry
+        - event: NewOwner(indexed bytes32,indexed bytes32,address)
+          handler: handleNewOwnerOldRegistry
+        - event: NewResolver(indexed bytes32,address)
+          handler: handleNewResolverOldRegistry
+        - event: NewTTL(indexed bytes32,uint64)
+          handler: handleNewTTLOldRegistry
+  - kind: ethereum/contract
+    name: Resolver
+    network: monad-testnet
+    source:
+      abi: Resolver
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: Resolver/Resolver.wasm
+      entities:
+        - AddrChanged
+        - MulticoinAddrChanged
+        - NameChanged
+        - AbiChanged
+        - PubkeyChanged
+        - Textchanged
+        - ContenthashChanged
+        - InterfaceChanged
+        - AuthorisationChanged
+      abis:
+        - name: Resolver
+          file: Resolver/PublicResolver.json
+      eventHandlers:
+        - event: ABIChanged(indexed bytes32,indexed uint256)
+          handler: handleABIChanged
+        - event: AddrChanged(indexed bytes32,address)
+          handler: handleAddrChanged
+        - event: AddressChanged(indexed bytes32,uint256,bytes)
+          handler: handleMulticoinAddrChanged
+        - event: AuthorisationChanged(indexed bytes32,indexed address,indexed address,bool)
+          handler: handleAuthorisationChanged
+        - event: ContenthashChanged(indexed bytes32,bytes)
+          handler: handleContentHashChanged
+        - event: InterfaceChanged(indexed bytes32,indexed bytes4,address)
+          handler: handleInterfaceChanged
+        - event: NameChanged(indexed bytes32,string)
+          handler: handleNameChanged
+        - event: PubkeyChanged(indexed bytes32,bytes32,bytes32)
+          handler: handlePubkeyChanged
+        - event: TextChanged(indexed bytes32,indexed string,string)
+          handler: handleTextChanged
+        - event: TextChanged(indexed bytes32,indexed string,string,string)
+          handler: handleTextChangedWithValue
+        - event: VersionChanged(indexed bytes32,uint64)
+          handler: handleVersionChanged
+  - kind: ethereum/contract
+    name: BaseRegistrar
+    network: monad-testnet
+    source:
+      abi: BaseRegistrar
+      address: "0x01BeCD733ea490CCDa8B5Caa97381E67BFA5249D"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: BaseRegistrar/BaseRegistrar.wasm
+      entities:
+        - Registration
+        - NameRegistered
+        - NameRenewed
+        - NameTransferred
+      abis:
+        - name: BaseRegistrar
+          file: BaseRegistrar/BaseRegistrar.json
+      eventHandlers:
+        - event: NameRegistered(indexed uint256,indexed address,uint256)
+          handler: handleNameRegistered
+        - event: NameRenewed(indexed uint256,uint256)
+          handler: handleNameRenewed
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleNameTransferred
+  - kind: ethereum/contract
+    name: MonRegistrarControllerOld
+    network: monad-testnet
+    source:
+      abi: MonRegistrarControllerOld
+      address: "0x04894Bf8F0ca6370C0fd8F5FCE3158033b46d979"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: BaseRegistrar/BaseRegistrar.wasm
+      entities:
+        - Registration
+      abis:
+        - name: MonRegistrarControllerOld
+          file: MonRegistrarControllerOld/MonRegistrarControllerOld.json
+      eventHandlers:
+        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256)
+          handler: handleNameRegisteredByControllerOld
+        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
+          handler: handleNameRenewedByController
+  - kind: ethereum/contract
+    name: MonRegistrarControllerOld2
+    network: monad-testnet
+    source:
+      abi: MonRegistrarControllerOld2
+      address: "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: BaseRegistrar/BaseRegistrar.wasm
+      entities:
+        - Registration
+      abis:
+        - name: MonRegistrarControllerOld2
+          file: MonRegistrarControllerOld2/MonRegistrarControllerOld2.json
+      eventHandlers:
+        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256)
+          handler: handleNameRegisteredByControllerOld
+        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
+          handler: handleNameRenewedByController
+  - kind: ethereum/contract
+    name: MonRegistrarController
+    network: monad-testnet
+    source:
+      abi: MonRegistrarController
+      address: "0x6C8a8114dA4EED8A2662B4069418e574411A5540"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: BaseRegistrar/BaseRegistrar.wasm
+      entities:
+        - Registration
+      abis:
+        - name: MonRegistrarController
+          file: MonRegistrarController/MonRegistrarController.json
+      eventHandlers:
+        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256,uint256)
+          handler: handleNameRegisteredByController
+        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
+          handler: handleNameRenewedByController
+  - kind: ethereum/contract
+    name: NameWrapper
+    network: monad-testnet
+    source:
+      abi: NameWrapper
+      address: "0x08Ca5c9e59d6Fc12BAb8DBa50825DaE57BBa9932"
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: NameWrapper/NameWrapper.wasm
+      entities:
+        - NameWrapper
+      abis:
+        - name: NameWrapper
+          file: NameWrapper/NameWrapper.json
+      eventHandlers:
+        - event: NameWrapped(indexed bytes32,bytes,address,uint32,uint64)
+          handler: handleNameWrapped
+        - event: NameUnwrapped(indexed bytes32,address)
+          handler: handleNameUnwrapped
+        - event: FusesSet(indexed bytes32,uint32)
+          handler: handleFusesSet
+        - event: ExpiryExtended(indexed bytes32,uint64)
+          handler: handleExpiryExtended
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+          handler: handleTransferBatch

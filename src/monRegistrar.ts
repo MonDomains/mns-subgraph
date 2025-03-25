@@ -1,241 +1,156 @@
-import { 
-  BigInt,  
-  Bytes, 
-  log, 
-  ethereum,
-  crypto,
-  ByteArray,
-  ens
-} from "@graphprotocol/graph-ts"
- 
-import { 
-  NameRegistered as NameRegisteredByController,
-  NameRenewed as NameRenewedByController
-} from "../generated/MONRegistrarController/MONRegistrarController"
+// Import types and APIs from graph-ts
+import { BigInt, ByteArray, Bytes, crypto, ens } from "@graphprotocol/graph-ts";
 
-import { 
-  NameRegistered as NameRegisteredByRegistrar,
-  NameRenewed as NameRenewedByRegistrar,
-  Transfer as NameTransferredByRegistrar
-} from "../generated/BaseRegistrarImplementation/BaseRegistrarImplementation"
+import {
+  checkValidLabel,
+  concat,
+  createEventID,
+  MON_NODE,
+  uint256ToByteArray,
+} from "./utils";
 
-import {  
-  NewOwner as NameNewOwnerByRegistry,
-  Transfer as NameTransferredByRegistry
-} from "../generated/ENSRegistryWithFallback/ENSRegistryWithFallback"
+// Import event types from the registry contract ABI
+import {
+  NameRegistered as NameRegisteredEvent,
+  NameRenewed as NameRenewedEvent,
+  Transfer as TransferEvent,
+} from "../generated/BaseRegistrar/BaseRegistrar";
 
- 
-import { Domain, Account } from "../generated/schema"
+import { NameRegistered as ControllerNameRegisteredEventOld } from "../generated/MonRegistrarControllerOld/MonRegistrarControllerOld";
 
-import { checkValidLabel, uint256ToByteArray } from "./utils"
- 
-const MON_NODE = "0xc6467acde3662083e12f3fbcf8aef57155a035e49629628eb9453948d1afb379"
-   
-export function handleNameRegisteredByController(event: NameRegisteredByController): void {
-    
-  let cost = event.params.baseCost
-  let expires = event.params.expires
-  let hash = event.params.label
-  let name = event.params.name
-  let owner = event.params.owner
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
- 
-  if(!checkValidLabel(name)) {
+import {
+  NameRegistered as ControllerNameRegisteredEvent,
+  NameRenewed as ControllerNameRenewedEvent,
+} from "../generated/MonRegistrarController/MonRegistrarController";
+
+// Import entity types generated from the GraphQL schema
+import {
+  Account,
+  Domain,
+  NameRegistered,
+  NameRenewed,
+  NameTransferred,
+  Registration,
+} from "../generated/schema";
+
+const GRACE_PERIOD_SECONDS = BigInt.fromI32(7776000); // 90 days
+
+var rootNode: ByteArray = ByteArray.fromHexString(MON_NODE);
+
+export function handleNameRegistered(event: NameRegisteredEvent): void {
+  let account = new Account(event.params.owner.toHex());
+  account.save();
+
+  let label = uint256ToByteArray(event.params.id);
+  let registration = new Registration(label.toHex());
+  let domain = Domain.load(crypto.keccak256(concat(rootNode, label)).toHex())!;
+
+  registration.domain = domain.id;
+  registration.registrationDate = event.block.timestamp;
+  registration.expiryDate = event.params.expires;
+  registration.registrant = account.id;
+
+  domain.registrant = account.id;
+  domain.expiryDate = event.params.expires.plus(GRACE_PERIOD_SECONDS);
+
+  let labelName = ens.nameByHash(label.toHexString());
+  if (checkValidLabel(labelName)) {
+    domain.labelName = labelName;
+    domain.name = labelName! + ".mon";
+    registration.labelName = labelName;
+  }
+  domain.save();
+  registration.save();
+
+  let registrationEvent = new NameRegistered(createEventID(event));
+  registrationEvent.registration = registration.id;
+  registrationEvent.blockNumber = event.block.number.toI32();
+  registrationEvent.transactionID = event.transaction.hash;
+  registrationEvent.registrant = account.id;
+  registrationEvent.expiryDate = event.params.expires;
+  registrationEvent.save();
+}
+
+export function handleNameRegisteredByControllerOld(
+  event: ControllerNameRegisteredEventOld
+): void {
+  setNamePreimage(event.params.name, event.params.label, event.params.cost);
+}
+
+export function handleNameRegisteredByController(
+  event: ControllerNameRegisteredEvent
+): void {
+  setNamePreimage(
+    event.params.name,
+    event.params.label,
+    event.params.baseCost.plus(event.params.premium)
+  );
+}
+
+export function handleNameRenewedByController(
+  event: ControllerNameRenewedEvent
+): void {
+  setNamePreimage(event.params.name, event.params.label, event.params.cost);
+}
+
+function setNamePreimage(name: string, label: Bytes, cost: BigInt): void {
+  if (!checkValidLabel(name)) {
     return;
   }
 
-  let _owner = getAccount(owner);
-  saveAccount(_owner)
-
-  let domain = getDomain(hash, blockTimestamp) 
-  domain.name = name + ".mon";
-  domain.labelName = name   
-  domain.owner = _owner.id
-  domain.registrant = _owner.id
-  domain.registeredAt = blockTimestamp
-  domain.expiryDate = expires;
-  saveDomain(domain, event);
-}
-
-export function handleNameRenewedByController(event: NameRenewedByController): void {
-   
-  let cost = event.params.cost
-  let expires = event.params.expires
-  let hash = event.params.label
-  let name = event.params.name
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
-   
-  if(!checkValidLabel(name)) {
-    return;
+  let domain = Domain.load(crypto.keccak256(concat(rootNode, label)).toHex())!;
+  if (domain.labelName != name) {
+    domain.labelName = name;
+    domain.name = name + ".mon";
+    domain.save();
   }
-  
-  let domain = getDomain(hash, blockTimestamp)
-  domain.name = name + ".mon";
-  domain.labelName = name;
-  domain.expiryDate = expires,
-  saveDomain(domain, event);
 
-  let _owner = getAccount(domain.owner!);
-  saveAccount(_owner);
+  let registration = Registration.load(label.toHex());
+  if (registration == null) return;
+  registration.labelName = name;
+  registration.cost = cost;
+  registration.save();
 }
 
- 
-export function handleNameRegisteredByRegistrar(event: NameRegisteredByRegistrar): void {
+export function handleNameRenewed(event: NameRenewedEvent): void {
+  let label = uint256ToByteArray(event.params.id);
+  let registration = Registration.load(label.toHex())!;
+  let domain = Domain.load(crypto.keccak256(concat(rootNode, label)).toHex())!;
 
-  let tokenId = event.params.id
-  let expires = event.params.expires
-  let owner = event.params.owner
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
- 
-  let label = uint256ToByteArray(tokenId) 
-  let hash = Bytes.fromByteArray(label)
-  let domain = getDomain(hash, blockTimestamp)
-  
-  let _owner = getAccount(owner);
-  saveAccount(_owner)
+  registration.expiryDate = event.params.expires;
+  domain.expiryDate = event.params.expires.plus(GRACE_PERIOD_SECONDS);
 
-  //let name = ens.nameByHash(label.toHexString());
+  registration.save();
+  domain.save();
 
-  //if (name != null && domain.labelName === null) {
-  //  domain.name = name + ".mon";
-  //  domain.labelName = name;
-  //}
- 
-  domain.owner = _owner.id;
-  domain.registrant = _owner.id
-  domain.registeredAt = blockTimestamp
-  domain.expiryDate = expires 
- 
-  saveDomain(domain, event)
+  let registrationEvent = new NameRenewed(createEventID(event));
+  registrationEvent.registration = registration.id;
+  registrationEvent.blockNumber = event.block.number.toI32();
+  registrationEvent.transactionID = event.transaction.hash;
+  registrationEvent.expiryDate = event.params.expires;
+  registrationEvent.save();
 }
 
-export function handleNameRenewedByRegistrar(event: NameRenewedByRegistrar): void {
+export function handleNameTransferred(event: TransferEvent): void {
+  let account = new Account(event.params.to.toHex());
+  account.save();
 
-  let tokenId = event.params.id
-  let expires = event.params.expires
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
-   
-  let label = uint256ToByteArray(tokenId) 
-  let hash = Bytes.fromByteArray(label)
-  let domain = getDomain(hash, blockTimestamp)
+  let label = uint256ToByteArray(event.params.tokenId);
+  let registration = Registration.load(label.toHex());
+  if (registration == null) return;
 
-  //let name = ens.nameByHash(label.toHexString());
+  let domain = Domain.load(crypto.keccak256(concat(rootNode, label)).toHex())!;
 
-  //if (name != null && domain.labelName === null) {
-  //  domain.name = name + ".mon";
-  //  domain.labelName = name;
-  //} 
+  registration.registrant = account.id;
+  domain.registrant = account.id;
 
-  domain.expiryDate = expires 
-  saveDomain(domain, event)  
-}
+  domain.save();
+  registration.save();
 
-export function handleNameTransferredByRegistrar(event: NameTransferredByRegistrar): void {
-  
-  let tokenId = event.params.tokenId
-  let from = event.params.from
-  let to = event.params.to
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
-
-  let label = uint256ToByteArray(tokenId) 
-  let hash = Bytes.fromByteArray(label)
-  let domain = getDomain(hash, blockTimestamp) 
-
-  let _owner = getAccount(to)
-  saveAccount(_owner)
-
-  domain.owner = _owner.id
-  saveDomain(domain, event) 
-}
- 
-export function handleTransferByRegistry(event: NameTransferredByRegistry): void {
-  let node = event.params.node
-  let owner = event.params.owner 
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
-   
-  let _owner = getAccount(owner)
-  saveAccount(_owner)
-
-  let domain = getDomain(node, blockTimestamp)
-  domain.owner = _owner.id
-  saveDomain(domain, event)
-} 
-
-export function handleNewOwnerByRegistry(event: NameNewOwnerByRegistry): void { 
-  let node = event.params.node
-  let owner = event.params.owner
-  let hash = event.params.label 
-  let blockNumber = event.block.number
-  let transactionHash = event.transaction.hash
-  let blockTimestamp = event.block.timestamp
-  
-  //let labelName = ens.nameByHash(hash.toHexString());
-   
-  let domain = getDomain(hash, blockTimestamp)
- 
-  let _owner = getAccount(owner)
-  saveAccount(_owner)
- 
-  domain.owner = _owner.id
- 
-  //if (labelName != null) {
-  //   domain.labelName = labelName;
-  //} 
-
-  saveDomain(domain, event)
-} 
-
-function getAccount(id: Bytes): Account {
-  let account = Account.load(id)
-  if(account === null) {
-    return createAccount(id)
-  }else{
-    return account
-  }
-}
-
-function createAccount(id: Bytes): Account {
-  let account = new Account(id)  
-  return account
-}
-
-function saveAccount(account: Account): void {
-  account.save()
-}
-
-function saveDomain(domain: Domain, event: ethereum.Event): void {
-  if(domain != null ) {    
-      domain.save() 
-  }
-}
-   
-function getDomain(label: Bytes, timestamp: BigInt): Domain {
-  let domain = Domain.load(getID(label))
-  if(domain === null) {
-    return createDomain(label, timestamp)
-  }else{
-    return domain
-  }
-}
-
-function createDomain(label: Bytes, timestamp: BigInt): Domain {
-  let domain = new Domain(getID(label))  
-  domain.createdAt = timestamp 
-  return domain
-}
-
-function getID(label: Bytes): Bytes {
-  return label;
+  let transferEvent = new NameTransferred(createEventID(event));
+  transferEvent.registration = label.toHex();
+  transferEvent.blockNumber = event.block.number.toI32();
+  transferEvent.transactionID = event.transaction.hash;
+  transferEvent.newOwner = account.id;
+  transferEvent.save();
 }
