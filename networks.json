@@ -1,68 +1,64 @@
 {
+  "monad": {
+    "MNSRegistry": {
+      "address": "",
+      "startBlock": 0
+    },
+    "MNSRegistryOld": {
+      "address": "",
+      "startBlock": 0
+    },
+    "Resolver": {
+      "startBlock": 0
+    },
+    "BaseRegistrar": {
+      "address": "",
+      "startBlock": 0
+    },
+    "MonRegistrarController2": {
+      "address": "",
+      "startBlock": 0
+    },
+    "MonRegistrarController": {
+      "address": "",
+      "startBlock": 0
+    },
+    "NameWrapper": {
+      "address": "",
+      "startBlock": 0
+    }
+  },
   "monad-testnet": {
-    "ENSRegistryWithFallback": {
+    "MNSRegistry": {
       "address": "0x6442eC5c3CCDaF112d6B78F9189cD111d516fE1E",
       "startBlock": 3960000
     },
-    "ENSRegistryWithFallbackOld": {
+    "MNSRegistryOld": {
       "address": "0x7DCbEf921f341d1C605Fd6c1F0F175Ce13888884",
       "startBlock": 3960000
     },
-    "ReverseRegistrar": {
-      "address": "0x604bdEE35ebC13ef233f6b4e20613061fDf5C7E5",
+    "Resolver": {
       "startBlock": 3960000
     },
-    "BaseRegistrarImplementation": {
+    "BaseRegistrar": {
       "address": "0x01BeCD733ea490CCDa8B5Caa97381E67BFA5249D",
       "startBlock": 3960000
-    },
-    "MONRegistrarController": {
+    }, 
+    "MonRegistrarControllerOld2": {
       "address": "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211",
       "startBlock": 3960000
-    }, 
-    "MONRegistrarControllerV2": {
+    },
+    "MonRegistrarControllerOld": {
       "address": "0x04894Bf8F0ca6370C0fd8F5FCE3158033b46d979",
       "startBlock": 3960000
-    }, 
-    "MONRegistrarControllerV3": {
+    },
+    "MonRegistrarController": {
       "address": "0x6C8a8114dA4EED8A2662B4069418e574411A5540",
       "startBlock": 3960000
-    }, 
-    "PublicResolver": {
-      "address": "0x4569B7AE2e1C13Bb812fEefee06e56a12E67471F",
-      "startBlock": 3960000
-    }
-  },
-  "monad-mainnet": {
-    "ENSRegistryWithFallback": {
-      "address": "",
-      "startBlock": 0
     },
-    "ENSRegistryWithFallbackOld": {
-      "address": "",
-      "startBlock": 0
-    },
-    "ReverseRegistrar": {
-      "address": "",
-      "startBlock": 0
-    },
-    "BaseRegistrarImplementation": {
-      "address": "",
-      "startBlock": 0
-    },
-    "MONRegistrarController": {
-      "address": "",
-      "startBlock": 0
-    }, 
-    "MONRegistrarControllerV2": {
-      "address": "",
-      "startBlock": 0
-    }, 
-    "PublicResolver": {
-      "address": "",
+    "NameWrapper": {
+      "address": "0x08Ca5c9e59d6Fc12BAb8DBa50825DaE57BBa9932",
       "startBlock": 0
     }
   }
 }
-
- 
