@@ -138,6 +138,29 @@ dataSources:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleNameTransferred
   - kind: ethereum/contract
+    name: MonRegistrarControllerOld2
+    network: monad-testnet
+    source:
+      abi: MonRegistrarControllerOld2
+      address: "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211"
+      startBlock: 3960000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/monRegistrar.ts
+      entities:
+        - Registration
+      abis:
+        - name: MonRegistrarControllerOld2
+          file: ./abis/MonRegistrarControllerOld.json
+      eventHandlers:
+        - event: NameRegistered(string,indexed bytes32,indexed
+            address,uint256,uint256,uint256)
+          handler: handleNameRegisteredByController
+        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
+          handler: handleNameRenewedByController
+  - kind: ethereum/contract
     name: MonRegistrarControllerOld
     network: monad-testnet
     source:
@@ -155,30 +178,9 @@ dataSources:
         - name: MonRegistrarControllerOld
           file: ./abis/MonRegistrarControllerOld.json
       eventHandlers:
-        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256)
-          handler: handleNameRegisteredByControllerOld
-        - event: NameRenewed(string,indexed bytes32,uint256,uint256)
-          handler: handleNameRenewedByController
-  - kind: ethereum/contract
-    name: MonRegistrarControllerOld2
-    network: monad-testnet
-    source:
-      abi: MonRegistrarControllerOld2
-      address: "0x73C5857a7710A7EF3bc32EfA32C8a2ba2827A211"
-      startBlock: 3960000
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/monRegistrar.ts
-      entities:
-        - Registration
-      abis:
-        - name: MonRegistrarControllerOld2
-          file: ./abis/MonRegistrarControllerOld2.json
-      eventHandlers:
-        - event: NameRegistered(string,indexed bytes32,indexed address,uint256,uint256)
-          handler: handleNameRegisteredByControllerOld
+        - event: NameRegistered(string,indexed bytes32,indexed
+            address,uint256,uint256,uint256)
+          handler: handleNameRegisteredByController
         - event: NameRenewed(string,indexed bytes32,uint256,uint256)
           handler: handleNameRenewedByController
   - kind: ethereum/contract

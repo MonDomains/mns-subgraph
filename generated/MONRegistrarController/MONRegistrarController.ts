@@ -157,132 +157,6 @@ export class MonRegistrarController extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
-  commitments(param0: Bytes): BigInt {
-    let result = super.call("commitments", "commitments(bytes32):(uint256)", [
-      ethereum.Value.fromFixedBytes(param0),
-    ]);
-
-    return result[0].toBigInt();
-  }
-
-  try_commitments(param0: Bytes): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "commitments",
-      "commitments(bytes32):(uint256)",
-      [ethereum.Value.fromFixedBytes(param0)],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  makeCommitment(
-    name: string,
-    owner: Address,
-    duration: BigInt,
-    secret: Bytes,
-    resolver: Address,
-    data: Array<Bytes>,
-    reverseRecord: boolean,
-    ownerControlledFuses: i32,
-  ): Bytes {
-    let result = super.call(
-      "makeCommitment",
-      "makeCommitment(string,address,uint256,bytes32,address,bytes[],bool,uint16):(bytes32)",
-      [
-        ethereum.Value.fromString(name),
-        ethereum.Value.fromAddress(owner),
-        ethereum.Value.fromUnsignedBigInt(duration),
-        ethereum.Value.fromFixedBytes(secret),
-        ethereum.Value.fromAddress(resolver),
-        ethereum.Value.fromBytesArray(data),
-        ethereum.Value.fromBoolean(reverseRecord),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(ownerControlledFuses)),
-      ],
-    );
-
-    return result[0].toBytes();
-  }
-
-  try_makeCommitment(
-    name: string,
-    owner: Address,
-    duration: BigInt,
-    secret: Bytes,
-    resolver: Address,
-    data: Array<Bytes>,
-    reverseRecord: boolean,
-    ownerControlledFuses: i32,
-  ): ethereum.CallResult<Bytes> {
-    let result = super.tryCall(
-      "makeCommitment",
-      "makeCommitment(string,address,uint256,bytes32,address,bytes[],bool,uint16):(bytes32)",
-      [
-        ethereum.Value.fromString(name),
-        ethereum.Value.fromAddress(owner),
-        ethereum.Value.fromUnsignedBigInt(duration),
-        ethereum.Value.fromFixedBytes(secret),
-        ethereum.Value.fromAddress(resolver),
-        ethereum.Value.fromBytesArray(data),
-        ethereum.Value.fromBoolean(reverseRecord),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(ownerControlledFuses)),
-      ],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBytes());
-  }
-
-  maxCommitmentAge(): BigInt {
-    let result = super.call(
-      "maxCommitmentAge",
-      "maxCommitmentAge():(uint256)",
-      [],
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_maxCommitmentAge(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "maxCommitmentAge",
-      "maxCommitmentAge():(uint256)",
-      [],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  minCommitmentAge(): BigInt {
-    let result = super.call(
-      "minCommitmentAge",
-      "minCommitmentAge():(uint256)",
-      [],
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_minCommitmentAge(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "minCommitmentAge",
-      "minCommitmentAge():(uint256)",
-      [],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
   nameWrapper(): Address {
     let result = super.call("nameWrapper", "nameWrapper():(address)", []);
 
@@ -460,20 +334,16 @@ export class ConstructorCall__Inputs {
     return this._call.inputValues[1].value.toAddress();
   }
 
-  get _minCommitmentAge(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-
-  get _maxCommitmentAge(): BigInt {
-    return this._call.inputValues[3].value.toBigInt();
-  }
-
   get _reverseRegistrar(): Address {
-    return this._call.inputValues[4].value.toAddress();
+    return this._call.inputValues[2].value.toAddress();
   }
 
   get _nameWrapper(): Address {
-    return this._call.inputValues[5].value.toAddress();
+    return this._call.inputValues[3].value.toAddress();
+  }
+
+  get _ens(): Address {
+    return this._call.inputValues[4].value.toAddress();
   }
 }
 
@@ -481,36 +351,6 @@ export class ConstructorCall__Outputs {
   _call: ConstructorCall;
 
   constructor(call: ConstructorCall) {
-    this._call = call;
-  }
-}
-
-export class CommitCall extends ethereum.Call {
-  get inputs(): CommitCall__Inputs {
-    return new CommitCall__Inputs(this);
-  }
-
-  get outputs(): CommitCall__Outputs {
-    return new CommitCall__Outputs(this);
-  }
-}
-
-export class CommitCall__Inputs {
-  _call: CommitCall;
-
-  constructor(call: CommitCall) {
-    this._call = call;
-  }
-
-  get commitment(): Bytes {
-    return this._call.inputValues[0].value.toBytes();
-  }
-}
-
-export class CommitCall__Outputs {
-  _call: CommitCall;
-
-  constructor(call: CommitCall) {
     this._call = call;
   }
 }
@@ -667,6 +507,36 @@ export class RenounceOwnershipCall__Outputs {
   _call: RenounceOwnershipCall;
 
   constructor(call: RenounceOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class SetPriceOracleCall extends ethereum.Call {
+  get inputs(): SetPriceOracleCall__Inputs {
+    return new SetPriceOracleCall__Inputs(this);
+  }
+
+  get outputs(): SetPriceOracleCall__Outputs {
+    return new SetPriceOracleCall__Outputs(this);
+  }
+}
+
+export class SetPriceOracleCall__Inputs {
+  _call: SetPriceOracleCall;
+
+  constructor(call: SetPriceOracleCall) {
+    this._call = call;
+  }
+
+  get _prices(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetPriceOracleCall__Outputs {
+  _call: SetPriceOracleCall;
+
+  constructor(call: SetPriceOracleCall) {
     this._call = call;
   }
 }

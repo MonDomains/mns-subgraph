@@ -35,12 +35,16 @@ export class NameRegistered__Params {
     return this._event.parameters[2].value.toAddress();
   }
 
-  get cost(): BigInt {
+  get baseCost(): BigInt {
     return this._event.parameters[3].value.toBigInt();
   }
 
-  get expires(): BigInt {
+  get premium(): BigInt {
     return this._event.parameters[4].value.toBigInt();
+  }
+
+  get expires(): BigInt {
+    return this._event.parameters[5].value.toBigInt();
   }
 }
 
@@ -74,24 +78,6 @@ export class NameRenewed__Params {
   }
 }
 
-export class NewPriceOracle extends ethereum.Event {
-  get params(): NewPriceOracle__Params {
-    return new NewPriceOracle__Params(this);
-  }
-}
-
-export class NewPriceOracle__Params {
-  _event: NewPriceOracle;
-
-  constructor(event: NewPriceOracle) {
-    this._event = event;
-  }
-
-  get oracle(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-}
-
 export class OwnershipTransferred extends ethereum.Event {
   get params(): OwnershipTransferred__Params {
     return new OwnershipTransferred__Params(this);
@@ -114,82 +100,19 @@ export class OwnershipTransferred__Params {
   }
 }
 
+export class MonRegistrarControllerOld__rentPriceResultPriceStruct extends ethereum.Tuple {
+  get base(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get premium(): BigInt {
+    return this[1].toBigInt();
+  }
+}
+
 export class MonRegistrarControllerOld extends ethereum.SmartContract {
   static bind(address: Address): MonRegistrarControllerOld {
     return new MonRegistrarControllerOld("MonRegistrarControllerOld", address);
-  }
-
-  supportsInterface(interfaceID: Bytes): boolean {
-    let result = super.call(
-      "supportsInterface",
-      "supportsInterface(bytes4):(bool)",
-      [ethereum.Value.fromFixedBytes(interfaceID)],
-    );
-
-    return result[0].toBoolean();
-  }
-
-  try_supportsInterface(interfaceID: Bytes): ethereum.CallResult<boolean> {
-    let result = super.tryCall(
-      "supportsInterface",
-      "supportsInterface(bytes4):(bool)",
-      [ethereum.Value.fromFixedBytes(interfaceID)],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBoolean());
-  }
-
-  commitments(param0: Bytes): BigInt {
-    let result = super.call("commitments", "commitments(bytes32):(uint256)", [
-      ethereum.Value.fromFixedBytes(param0),
-    ]);
-
-    return result[0].toBigInt();
-  }
-
-  try_commitments(param0: Bytes): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "commitments",
-      "commitments(bytes32):(uint256)",
-      [ethereum.Value.fromFixedBytes(param0)],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  rentPrice(name: string, duration: BigInt): BigInt {
-    let result = super.call(
-      "rentPrice",
-      "rentPrice(string,uint256):(uint256)",
-      [
-        ethereum.Value.fromString(name),
-        ethereum.Value.fromUnsignedBigInt(duration),
-      ],
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_rentPrice(name: string, duration: BigInt): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "rentPrice",
-      "rentPrice(string,uint256):(uint256)",
-      [
-        ethereum.Value.fromString(name),
-        ethereum.Value.fromUnsignedBigInt(duration),
-      ],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
   MIN_REGISTRATION_DURATION(): BigInt {
@@ -215,27 +138,23 @@ export class MonRegistrarControllerOld extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  minCommitmentAge(): BigInt {
-    let result = super.call(
-      "minCommitmentAge",
-      "minCommitmentAge():(uint256)",
-      [],
-    );
+  available(name: string): boolean {
+    let result = super.call("available", "available(string):(bool)", [
+      ethereum.Value.fromString(name),
+    ]);
 
-    return result[0].toBigInt();
+    return result[0].toBoolean();
   }
 
-  try_minCommitmentAge(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "minCommitmentAge",
-      "minCommitmentAge():(uint256)",
-      [],
-    );
+  try_available(name: string): ethereum.CallResult<boolean> {
+    let result = super.tryCall("available", "available(string):(bool)", [
+      ethereum.Value.fromString(name),
+    ]);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
   owner(): Address {
@@ -253,14 +172,101 @@ export class MonRegistrarControllerOld extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  isOwner(): boolean {
-    let result = super.call("isOwner", "isOwner():(bool)", []);
+  prices(): Address {
+    let result = super.call("prices", "prices():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_prices(): ethereum.CallResult<Address> {
+    let result = super.tryCall("prices", "prices():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  rentPrice(
+    name: string,
+    duration: BigInt,
+  ): MonRegistrarControllerOld__rentPriceResultPriceStruct {
+    let result = super.call(
+      "rentPrice",
+      "rentPrice(string,uint256):((uint256,uint256))",
+      [
+        ethereum.Value.fromString(name),
+        ethereum.Value.fromUnsignedBigInt(duration),
+      ],
+    );
+
+    return changetype<MonRegistrarControllerOld__rentPriceResultPriceStruct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_rentPrice(
+    name: string,
+    duration: BigInt,
+  ): ethereum.CallResult<MonRegistrarControllerOld__rentPriceResultPriceStruct> {
+    let result = super.tryCall(
+      "rentPrice",
+      "rentPrice(string,uint256):((uint256,uint256))",
+      [
+        ethereum.Value.fromString(name),
+        ethereum.Value.fromUnsignedBigInt(duration),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<MonRegistrarControllerOld__rentPriceResultPriceStruct>(
+        value[0].toTuple(),
+      ),
+    );
+  }
+
+  reverseRegistrar(): Address {
+    let result = super.call(
+      "reverseRegistrar",
+      "reverseRegistrar():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_reverseRegistrar(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "reverseRegistrar",
+      "reverseRegistrar():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  supportsInterface(interfaceID: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceID)],
+    );
 
     return result[0].toBoolean();
   }
 
-  try_isOwner(): ethereum.CallResult<boolean> {
-    let result = super.tryCall("isOwner", "isOwner():(bool)", []);
+  try_supportsInterface(interfaceID: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceID)],
+    );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -286,197 +292,84 @@ export class MonRegistrarControllerOld extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
+}
 
-  available(name: string): boolean {
-    let result = super.call("available", "available(string):(bool)", [
-      ethereum.Value.fromString(name),
-    ]);
-
-    return result[0].toBoolean();
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
   }
 
-  try_available(name: string): ethereum.CallResult<boolean> {
-    let result = super.tryCall("available", "available(string):(bool)", [
-      ethereum.Value.fromString(name),
-    ]);
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBoolean());
-  }
-
-  maxCommitmentAge(): BigInt {
-    let result = super.call(
-      "maxCommitmentAge",
-      "maxCommitmentAge():(uint256)",
-      [],
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_maxCommitmentAge(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "maxCommitmentAge",
-      "maxCommitmentAge():(uint256)",
-      [],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  makeCommitment(name: string, owner: Address, secret: Bytes): Bytes {
-    let result = super.call(
-      "makeCommitment",
-      "makeCommitment(string,address,bytes32):(bytes32)",
-      [
-        ethereum.Value.fromString(name),
-        ethereum.Value.fromAddress(owner),
-        ethereum.Value.fromFixedBytes(secret),
-      ],
-    );
-
-    return result[0].toBytes();
-  }
-
-  try_makeCommitment(
-    name: string,
-    owner: Address,
-    secret: Bytes,
-  ): ethereum.CallResult<Bytes> {
-    let result = super.tryCall(
-      "makeCommitment",
-      "makeCommitment(string,address,bytes32):(bytes32)",
-      [
-        ethereum.Value.fromString(name),
-        ethereum.Value.fromAddress(owner),
-        ethereum.Value.fromFixedBytes(secret),
-      ],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBytes());
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
   }
 }
 
-export class WithdrawCall extends ethereum.Call {
-  get inputs(): WithdrawCall__Inputs {
-    return new WithdrawCall__Inputs(this);
-  }
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
 
-  get outputs(): WithdrawCall__Outputs {
-    return new WithdrawCall__Outputs(this);
-  }
-}
-
-export class WithdrawCall__Inputs {
-  _call: WithdrawCall;
-
-  constructor(call: WithdrawCall) {
+  constructor(call: ConstructorCall) {
     this._call = call;
   }
-}
 
-export class WithdrawCall__Outputs {
-  _call: WithdrawCall;
-
-  constructor(call: WithdrawCall) {
-    this._call = call;
-  }
-}
-
-export class SetPriceOracleCall extends ethereum.Call {
-  get inputs(): SetPriceOracleCall__Inputs {
-    return new SetPriceOracleCall__Inputs(this);
-  }
-
-  get outputs(): SetPriceOracleCall__Outputs {
-    return new SetPriceOracleCall__Outputs(this);
-  }
-}
-
-export class SetPriceOracleCall__Inputs {
-  _call: SetPriceOracleCall;
-
-  constructor(call: SetPriceOracleCall) {
-    this._call = call;
+  get _base(): Address {
+    return this._call.inputValues[0].value.toAddress();
   }
 
   get _prices(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
+  get _reverseRegistrar(): Address {
+    return this._call.inputValues[2].value.toAddress();
+  }
+
+  get _ens(): Address {
+    return this._call.inputValues[3].value.toAddress();
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class RecoverFundsCall extends ethereum.Call {
+  get inputs(): RecoverFundsCall__Inputs {
+    return new RecoverFundsCall__Inputs(this);
+  }
+
+  get outputs(): RecoverFundsCall__Outputs {
+    return new RecoverFundsCall__Outputs(this);
+  }
+}
+
+export class RecoverFundsCall__Inputs {
+  _call: RecoverFundsCall;
+
+  constructor(call: RecoverFundsCall) {
+    this._call = call;
+  }
+
+  get _token(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
-}
 
-export class SetPriceOracleCall__Outputs {
-  _call: SetPriceOracleCall;
+  get _to(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
 
-  constructor(call: SetPriceOracleCall) {
-    this._call = call;
+  get _amount(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
   }
 }
 
-export class RenounceOwnershipCall extends ethereum.Call {
-  get inputs(): RenounceOwnershipCall__Inputs {
-    return new RenounceOwnershipCall__Inputs(this);
-  }
+export class RecoverFundsCall__Outputs {
+  _call: RecoverFundsCall;
 
-  get outputs(): RenounceOwnershipCall__Outputs {
-    return new RenounceOwnershipCall__Outputs(this);
-  }
-}
-
-export class RenounceOwnershipCall__Inputs {
-  _call: RenounceOwnershipCall;
-
-  constructor(call: RenounceOwnershipCall) {
-    this._call = call;
-  }
-}
-
-export class RenounceOwnershipCall__Outputs {
-  _call: RenounceOwnershipCall;
-
-  constructor(call: RenounceOwnershipCall) {
-    this._call = call;
-  }
-}
-
-export class SetCommitmentAgesCall extends ethereum.Call {
-  get inputs(): SetCommitmentAgesCall__Inputs {
-    return new SetCommitmentAgesCall__Inputs(this);
-  }
-
-  get outputs(): SetCommitmentAgesCall__Outputs {
-    return new SetCommitmentAgesCall__Outputs(this);
-  }
-}
-
-export class SetCommitmentAgesCall__Inputs {
-  _call: SetCommitmentAgesCall;
-
-  constructor(call: SetCommitmentAgesCall) {
-    this._call = call;
-  }
-
-  get _minCommitmentAge(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-
-  get _maxCommitmentAge(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-}
-
-export class SetCommitmentAgesCall__Outputs {
-  _call: SetCommitmentAgesCall;
-
-  constructor(call: SetCommitmentAgesCall) {
+  constructor(call: RecoverFundsCall) {
     this._call = call;
   }
 }
@@ -510,8 +403,16 @@ export class RegisterCall__Inputs {
     return this._call.inputValues[2].value.toBigInt();
   }
 
-  get secret(): Bytes {
-    return this._call.inputValues[3].value.toBytes();
+  get resolver(): Address {
+    return this._call.inputValues[3].value.toAddress();
+  }
+
+  get data(): Array<Bytes> {
+    return this._call.inputValues[4].value.toBytesArray();
+  }
+
+  get reverseRecord(): boolean {
+    return this._call.inputValues[5].value.toBoolean();
   }
 }
 
@@ -557,32 +458,58 @@ export class RenewCall__Outputs {
   }
 }
 
-export class CommitCall extends ethereum.Call {
-  get inputs(): CommitCall__Inputs {
-    return new CommitCall__Inputs(this);
+export class RenounceOwnershipCall extends ethereum.Call {
+  get inputs(): RenounceOwnershipCall__Inputs {
+    return new RenounceOwnershipCall__Inputs(this);
   }
 
-  get outputs(): CommitCall__Outputs {
-    return new CommitCall__Outputs(this);
+  get outputs(): RenounceOwnershipCall__Outputs {
+    return new RenounceOwnershipCall__Outputs(this);
   }
 }
 
-export class CommitCall__Inputs {
-  _call: CommitCall;
+export class RenounceOwnershipCall__Inputs {
+  _call: RenounceOwnershipCall;
 
-  constructor(call: CommitCall) {
+  constructor(call: RenounceOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceOwnershipCall__Outputs {
+  _call: RenounceOwnershipCall;
+
+  constructor(call: RenounceOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class SetPriceOracleCall extends ethereum.Call {
+  get inputs(): SetPriceOracleCall__Inputs {
+    return new SetPriceOracleCall__Inputs(this);
+  }
+
+  get outputs(): SetPriceOracleCall__Outputs {
+    return new SetPriceOracleCall__Outputs(this);
+  }
+}
+
+export class SetPriceOracleCall__Inputs {
+  _call: SetPriceOracleCall;
+
+  constructor(call: SetPriceOracleCall) {
     this._call = call;
   }
 
-  get commitment(): Bytes {
-    return this._call.inputValues[0].value.toBytes();
+  get _prices(): Address {
+    return this._call.inputValues[0].value.toAddress();
   }
 }
 
-export class CommitCall__Outputs {
-  _call: CommitCall;
+export class SetPriceOracleCall__Outputs {
+  _call: SetPriceOracleCall;
 
-  constructor(call: CommitCall) {
+  constructor(call: SetPriceOracleCall) {
     this._call = call;
   }
 }
@@ -617,44 +544,28 @@ export class TransferOwnershipCall__Outputs {
   }
 }
 
-export class ConstructorCall extends ethereum.Call {
-  get inputs(): ConstructorCall__Inputs {
-    return new ConstructorCall__Inputs(this);
+export class WithdrawCall extends ethereum.Call {
+  get inputs(): WithdrawCall__Inputs {
+    return new WithdrawCall__Inputs(this);
   }
 
-  get outputs(): ConstructorCall__Outputs {
-    return new ConstructorCall__Outputs(this);
+  get outputs(): WithdrawCall__Outputs {
+    return new WithdrawCall__Outputs(this);
   }
 }
 
-export class ConstructorCall__Inputs {
-  _call: ConstructorCall;
+export class WithdrawCall__Inputs {
+  _call: WithdrawCall;
 
-  constructor(call: ConstructorCall) {
+  constructor(call: WithdrawCall) {
     this._call = call;
   }
-
-  get _base(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-
-  get _prices(): Address {
-    return this._call.inputValues[1].value.toAddress();
-  }
-
-  get _minCommitmentAge(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-
-  get _maxCommitmentAge(): BigInt {
-    return this._call.inputValues[3].value.toBigInt();
-  }
 }
 
-export class ConstructorCall__Outputs {
-  _call: ConstructorCall;
+export class WithdrawCall__Outputs {
+  _call: WithdrawCall;
 
-  constructor(call: ConstructorCall) {
+  constructor(call: WithdrawCall) {
     this._call = call;
   }
 }

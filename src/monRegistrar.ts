@@ -74,7 +74,7 @@ export function handleNameRegistered(event: NameRegisteredEvent): void {
 export function handleNameRegisteredByControllerOld(
   event: ControllerNameRegisteredEventOld
 ): void {
-  setNamePreimage(event.params.name, event.params.label, event.params.cost);
+  //setNamePreimage(event.params.name, event.params.label, event.params.cost);
 }
 
 export function handleNameRegisteredByController(
